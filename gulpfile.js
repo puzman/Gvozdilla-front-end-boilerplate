@@ -1,5 +1,5 @@
 'use strict';
-
+// плагины
 var gulp = require('gulp'),
     watch = require('gulp-watch'),
     uglify = require('gulp-uglify'),
@@ -18,7 +18,7 @@ var gulp = require('gulp'),
     jade = require('gulp-jade'),
     typograf = require('gulp-typograf'),
     posthtml = require('gulp-posthtml');
-
+//Пути фаqлов
 var path = {
     build: {
         html: 'build/',
@@ -45,12 +45,12 @@ var path = {
     },
     clean: './build'
 };
-
+//настройка browser-sync
 var config = {
     server: {
         baseDir: "./build"
     },
-    tunnel: false,
+    tunnel: false,// true для того чтобы включить туннель с внешим адресом
     host: 'localhost',
     port: 9000,
     logPrefix: "Jenovas"
@@ -60,61 +60,61 @@ gulp.task('webserver', function () {
     browserSync(config);
 });
 
-gulp.task('clean', function (cb) {
+gulp.task('clean', function (cb) {// удаление папки build
     rimraf(path.clean, cb);
 });
 
-gulp.task('html:build', function () {
+gulp.task('html:build', function () { //Сборка Html
     gulp.src(path.src.html)
         .pipe(plumber())
-        .pipe(rigger())
-    gulp.src(path.src.jade)
+        .pipe(rigger())// если необходимо подключаем файлы
+    gulp.src(path.src.jade)//Компиляция Html файлов из JADE
         .pipe(plumber())
         .pipe(jade({
             pretty: true
         }))
-        .pipe(typograf({
+        .pipe(typograf({ //Типографим тексты
             lang: 'ru',
             disable: ['ru/nbsp/initials',
                 'common/symbols/cf']
 
         }))
-        .pipe(gulp.dest(path.build.html))
-        .pipe(reload({stream: true}));
+        .pipe(gulp.dest(path.build.html))// сохранение html в /build
+        .pipe(reload({stream: true}));// обновление в браузере
 });
 
-gulp.task('js:build', function () {
+gulp.task('js:build', function () { //сборка JS
     gulp.src(path.src.js)
         .pipe(plumber())
-        .pipe(rigger())
-        .pipe(sourcemaps.init())
-        .pipe(uglify())
-        .pipe(sourcemaps.write())
-        .pipe(gulp.dest(path.build.js))
-        .pipe(reload({stream: true}));
+        .pipe(rigger()) // импорт необходимых файлов  в один
+        .pipe(sourcemaps.init())// строим source map
+        .pipe(uglify())// минификация
+        .pipe(sourcemaps.write())// Запись sourcemap
+        .pipe(gulp.dest(path.build.js))// сохранение готового файла в build/js
+        .pipe(reload({stream: true}));// обновление в браузере
 });
 
-gulp.task('style:build', function () {
+gulp.task('style:build', function () { //Сборка сss
     gulp.src(path.src.style)
         .pipe(plumber())
-        .pipe(sourcemaps.init())
-        .pipe(sass({
+        .pipe(sourcemaps.init())// сборка source maps
+        .pipe(sass({ //компиляция и минификация в сss из sass
             includePaths: ['src/style/'],
             outputStyle: 'compressed',
             sourceMap: true,
             errLogToConsole: true
         }))
-        .pipe(autoprefixer({
+        .pipe(autoprefixer({ //расстановка вендорных префисов где это неоюходимо
             browsers: ['last 2 versions'],
             cascade: false
         }))
-        .pipe(minifyCss())
-        .pipe(sourcemaps.write())
-        .pipe(gulp.dest(path.build.css))
-        .pipe(reload({stream: true}));
+        .pipe(minifyCss()) //минификация в сss при этом импортируются сss afqks d jlby
+        .pipe(sourcemaps.write()) // Запись sourcemap
+        .pipe(gulp.dest(path.build.css))// сохранение готового файла в build/js
+        .pipe(reload({stream: true}));// обновление в браузере
 });
 
-gulp.task('image:build', function () {
+gulp.task('image:build', function () { //сжатие изображений
     gulp.src(path.src.img)
         .pipe(imagemin({
             progressive: true,
@@ -123,19 +123,19 @@ gulp.task('image:build', function () {
             interlaced: true
         }))
         .pipe(gulp.dest(path.build.img))
-        .pipe(reload({stream: true}));
+        .pipe(reload({stream: true}));// обновление в браузере
 });
 
 gulp.task('fonts:build', function () {
     gulp.src(path.src.fonts)
         .pipe(gulp.dest(path.build.fonts))
 });
-gulp.task('classes', function () {
-    return gulp.src('build/index.html')
+gulp.task('classes', function () { //cборка классов из html файла в любой файл
+    return gulp.src('build/index.html')// исходный файл
         .pipe(posthtml([
             require('posthtml-classes')({
                 fileSave: true,
-                filePath: './src/style/partials/header.scss',
+                filePath: './src/style/partials/header.scss',// файл куда пишутся классы
                 overwrite: true,
                 eol: '\n',
                 nested: false
@@ -143,7 +143,7 @@ gulp.task('classes', function () {
 
         ]));
 });
-gulp.task('build', [
+gulp.task('build', [// сама задача на сборку проекта
     'html:build',
     'js:build',
     'style:build',
@@ -152,24 +152,24 @@ gulp.task('build', [
 ]);
 
 
-gulp.task('watch', function () {
+gulp.task('watch', function () { //наблюдение за изменениями в файлах из папки jade и запуск сборки измененных файлов
     watch([path.watch.jade], function (event, cb) {
         gulp.start('html:build');
     });
 
-    watch([path.watch.style], function (event, cb) {
+    watch([path.watch.style], function (event, cb) {//наблюдение за изменениями в файлах из папки style и запуск сборки измененных файлов
         gulp.start('style:build');
     });
-    watch([path.watch.js], function (event, cb) {
+    watch([path.watch.js], function (event, cb) {//наблюдение за изменениями в файлах из папки js и запуск сборки измененных файлов
         gulp.start('js:build');
     });
-    watch([path.watch.img], function (event, cb) {
+    watch([path.watch.img], function (event, cb) {//наблюдение за изменениями в файлах из папки img и запуск сборки измененных файлов
         gulp.start('image:build');
     });
-    watch([path.watch.fonts], function (event, cb) {
+    watch([path.watch.fonts], function (event, cb) {//наблюдение за изменениями в файлах из папки fonts и запуск сборки измененных файлов
         gulp.start('fonts:build');
     });
 });
 
 
-gulp.task('default', ['build', 'webserver', 'watch']);
+gulp.task('default', ['build', 'webserver', 'watch']);//запуск задач, все кроме сбора классов и удаления папки build
